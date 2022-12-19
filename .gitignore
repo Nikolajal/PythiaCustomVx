@@ -1,2 +1,5 @@
 Pythia_vX/*
 *.DS_Store
+*.root
+*.out
+*xcworkspace

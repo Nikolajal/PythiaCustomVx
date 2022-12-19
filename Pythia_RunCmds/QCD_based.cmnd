@@ -1,0 +1,4 @@
+! The new more QCD based scheme
+ColourReconnection:reconnect = on
+ColourReconnection:mode = 1
+BeamRemnants:remnantMode = 1

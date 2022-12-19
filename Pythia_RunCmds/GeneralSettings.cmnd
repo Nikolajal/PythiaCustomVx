@@ -1,0 +1,11 @@
+! General Run settings
+Init:showChangedSettings = on      ! list changed settings
+Init:showAllSettings = off         ! list all settings
+Init:showChangedParticleData = on  ! list changed particle data
+Init:showAllParticleData = off     ! list all particle data
+Next:numberCount = 10000           ! print message every n events
+Next:numberShowLHA = 0             ! print LHA information n times
+Next:numberShowInfo = 0            ! print event information n times
+Next:numberShowProcess = 0         ! print process record n times
+Next:numberShowEvent = 0           ! print event record n times
+Stat:showPartonLevel = off         ! additional statistics on MPI

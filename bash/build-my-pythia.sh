@@ -52,15 +52,17 @@ if [ $PYTHIASHORTV_ = "82" ]
     then
     ./configure ${HEPMC2_ROOT:+--with-hepmc2="$HEPMC2_ROOT"} \
                 ${LHAPDF_ROOT:+--with-lhapdf6="$LHAPDF_ROOT"} \
-                ${FASTJET_ROOT:+--with-fastjet3="$FASTJET_ROOT"}
+                ${FASTJET_ROOT:+--with-fastjet3="$FASTJET_ROOT"} \
+                --cxx-common="-O2 -std=c++2b -pedantic -W -Wall -Wshadow -fPIC -pthread"
 fi
 if [ $PYTHIASHORTV_ = "83" ]
     then
     ./configure ${HEPMC3_ROOT:+--with-hepmc3="$HEPMC3_ROOT"} \
                 ${LHAPDF_ROOT:+--with-lhapdf6="$LHAPDF_ROOT"} \
-                ${FASTJET_ROOT:+--with-fastjet3="$FASTJET_ROOT"}
+                ${FASTJET_ROOT:+--with-fastjet3="$FASTJET_ROOT"} \
+                --cxx-common="-O2 -std=c++2b -pedantic -W -Wall -Wshadow -fPIC -pthread"
 fi
-make
+make -j40
 #
 # make alias zshrc
 if grep -q "pythia$PYTHIAVERSION-config" ~/.zshrc

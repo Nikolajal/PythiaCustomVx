@@ -1,28 +1,129 @@
 #!/bin/bash
 #
-source ~/.bashrc
-g++ main_custom.cc -std=c++2b `pythia8308-config --ldflags --cxxflags` `hepmc3-config --ldflags --cppflags`
-install_name_tool -add_rpath /Users/nrubini/alice/sw/osx_arm64/HepMC3/3.2.5-local2/lib/ ./a.out
-./a.out
-exit 1
-#
 # Options
-PYTHIAVERSION=""
-while getopts 'hv:' OPTION; do
+PYTHIAVERSION=8308
+PYTHIASHORTV_=83
+VERBOSE=FALSE
+COLLISIONENERGY=7000
+BEAMPARTICLEA=2212
+BEAMPARTICLEB=2212
+NEVENTS=10000
+SEED=12345
+OPTION=0
+FILENAME="out"
+DRYRUN=FALSE
+while getopts ':hV-:' OPTION; do
     case "$OPTION" in
-        h)
-            echo "[HELP] Helper to download and install Pythia versions"
-            echo "Pythia version should be given in format: 8308 for Pythia 8.308"
-            exit 1
+        ## Complex options
+        -)
+            case "$OPTARG" in
+                ## Set verbose
+                verbose)
+                    VERBOSE=TRUE
+                    ;;
+                ## Set verbose
+                dryrun)
+                    DRYRUN=TRUE
+                    ;;
+                ## Set version
+                version)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    PYTHIAVERSION="$CURRENTVAL"
+                    PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
+                    ;;
+                version=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    PYTHIAVERSION="$CURRENTVAL"
+                    PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
+                    ;;
+                ## Set energy
+                energy)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    COLLISIONENERGY="$CURRENTVAL"
+                    ;;
+                energy=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    COLLISIONENERGY="$CURRENTVAL"
+                    ;;
+                ## Beam id A
+                beamidA)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    BEAMPARTICLEA="$CURRENTVAL"
+                    ;;
+                beamidA=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    BEAMPARTICLEA="$CURRENTVAL"
+                    ;;
+                ## Beam id B
+                beamidB)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    BEAMPARTICLEB="$CURRENTVAL"
+                    ;;
+                beamidB=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    BEAMPARTICLEB="$CURRENTVAL"
+                    ;;
+                ## Number of events
+                nevents)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    NEVENTS="$CURRENTVAL"
+                    ;;
+                nevents=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    NEVENTS="$CURRENTVAL"
+                    ;;
+                ## Generation seed
+                seed)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    SEED="$CURRENTVAL"
+                    ;;
+                seed=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    SEED="$CURRENTVAL"
+                    ;;
+                ## Filename output
+                outfile)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    FILENAME="$CURRENTVAL"
+                    ;;
+                outfile=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    FILENAME="$CURRENTVAL"
+                    ;;
+                ## Option
+                option)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    OPTION="$CURRENTVAL"
+                    ;;
+                option=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    OPTION="$CURRENTVAL"
+                    ;;
+                *)
+                    if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
+                        echo "Unknown option --${OPTARG}" >&2
+                    fi
+                    ;;
+            esac;;
+            ## Verbose
+        V)
+            VERBOSE=TRUE
             ;;
-        v)
-            PYTHIAVERSION="$OPTARG"
-            PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
-            echo "[INFO] Trying to download and install Pythia $PYTHIAVERSION"
-            ;;
-        ?)
-            echo "[HELP] Helper to download and install Pythia versions"
-            echo "Pythia version should be given in format: -v 8308 for Pythia 8.308"
+            ## Helper
+        *)
+            echo    "[HELP] Custom pythia runner, this script will run      "
+            echo    "the file src/main_custom.cc with the required pythia   "
+            echo -e "version. A number of possible arguments can be given:  \n"
+            echo    "-V          Verbose mode                               "
+            echo    "--version  Set pythia version to run                   "
+            echo    "--energy   Set energy in GeV                           "
+            echo    "--beamidA  Set beam A particle ID                      "
+            echo    "--beamidB  Set beam B particle ID                      "
+            echo    "--nevents  Set number of events to simulate            "
+            echo    "--seed     Set seed for generation                     "
+            echo    "--outfile  Set outputfile                              "
+            echo    "--option   Set generation option                       "
+            echo    "--dryrun   Only compile code                           "
             exit 1
             ;;
   esac
@@ -35,5 +136,30 @@ if [ -z "$PYTHIAVERSION" ]
     exit 1
 fi
 #
-g++ main41.cc -std=c++2b `pythia8308-config --ldflags --cxxflags` `hepmc3-config --ldflags --cppflags`
-install_name_tool -add_rpath /Users/nrubini/alice/sw/osx_arm64/HepMC3/3.2.5-local2/lib/ ./a.out
+if [ ! -d "$(pwd)/Pythia_vX/pythia$PYTHIAVERSION/bin/" ]
+    then
+    if $DRYRUN
+    then
+        echo "[WARNING] Pythia not available, will try to fetch it"
+    else
+        echo "[WARNING] Pythia not available, trying to fetch it"
+        ./bash/build-my-pythia.sh -v $PYTHIAVERSION
+    fi
+fi
+#
+#   Explicit set-up
+if $VERBOSE
+    then
+    echo    "[HELP] Custom pythia runner, this script will run      "
+    echo    "[INFO] This script will try to run Pythia version $PYTHIAVERSION"
+    echo    "with collisions $BEAMPARTICLEA - $BEAMPARTICLEB at $COLLISIONENERGY GeV energy"
+fi
+#
+mkdir -p exe
+g++ src/main_custom.cc -o exe/main_custom -std=c++2b `$(pwd)/Pythia_vX/pythia$PYTHIAVERSION/bin/pythia8-config --ldflags --cxxflags` `root-config --cflags --ldflags --libs --glibs --evelibs`
+if $DRYRUN
+then
+    echo    "[INFO] Done! Dryrun completed   "
+else
+    ./exe/main_custom $FILENAME $NEVENTS $SEED $OPTION $COLLISIONENERGY $BEAMPARTICLEA $BEAMPARTICLEB
+fi
