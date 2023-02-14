@@ -2,21 +2,64 @@
 #
 # Options
 PYTHIAVERSION=""
-while getopts 'hv:' OPTION; do
+VERBOSE=FALSE
+RIVETBUILD=FALSE
+while getopts ':V-:' OPTION; do
     case "$OPTION" in
-        h)
-            echo "[HELP] Helper to download and install Pythia versions"
-            echo "Pythia version should be given in format: 8308 for Pythia 8.308"
-            exit 1
+        ## Complex options
+        -)
+            case "$OPTARG" in
+                ## Set verbose
+                verbose)
+                    VERBOSE=TRUE
+                    ;;
+                ## Set verbose
+                dryrun)
+                    DRYRUN=TRUE
+                    ;;
+                ## Set version
+                version)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    PYTHIAVERSION="$CURRENTVAL"
+                    PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
+                    ;;
+                version=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    PYTHIAVERSION="$CURRENTVAL"
+                    PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
+                    ;;
+                ## enable Rivet build
+                Rivet)
+                    CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
+                    PYTHIAVERSION="$CURRENTVAL"
+                    PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
+                    ;;
+                Rivet=*)
+                    CURRENTVAL=${OPTARG#*=}
+                    PYTHIAVERSION="$CURRENTVAL"
+                    PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
+                    ;;
+                *)
+                    if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
+                        echo "Unknown option --${OPTARG}" >&2
+                        echo "use -h to see list of available commands. abort"
+                        exit 1
+                    fi
+                    ;;
+            esac;;
+            ## Verbose
+        V)
+            VERBOSE=TRUE
             ;;
-        v)
-            PYTHIAVERSION="$OPTARG"
-            PYTHIASHORTV_="${PYTHIAVERSION:0:${#PYTHIAVERSION}-2}"
-            echo "[INFO] Trying to download and install Pythia $PYTHIAVERSION"
-            ;;
-        ?)
-            echo "[HELP] Helper to download and install Pythia versions"
-            echo "Pythia version should be given in format: -v 8308 for Pythia 8.308"
+            ## Helper
+        *)
+            echo    "[HELP] Custom pythia builer, this script build locally "
+            echo    "any available version of pythia version. A number of   "
+            echo -e "possible arguments can be given:                       \n"
+            echo    "-V          Verbose mode                               "
+            echo    "--version  Set pythia version to build                 "
+            echo    "--dryrun   Only compile code                           "
+            echo    "--Rivet    Only compile code                           "
             exit 1
             ;;
   esac
@@ -25,17 +68,20 @@ shift "$(($OPTIND -1))"
 #
 if [ -z "$PYTHIAVERSION" ]
     then
-    echo "[ERROR] A version must be given with -v"
+    echo "[ERROR] A version must be given --version"
     exit 1
 fi
 #
 mkdir -p Pythia_vX
 cd Pythia_vX
 #
-FASTJET_ROOT="/Users/nrubini/alice/sw/osx_arm64/fastjet/latest/"
-HEPMC2_ROOT="/Users/nrubini/alice/sw/osx_arm64/HepMC/latest/"
-HEPMC3_ROOT="/Users/nrubini/alice/sw/osx_arm64/HepMC3/latest/"
-LHAPDF_ROOT="/Users/nrubini/alice/sw/osx_arm64/lhapdf/latest/"
+if $RIVETBUILD
+    then
+    RIVET_DIR="$ALIBUILD_WORK_DIR/$(aliBuild architecture)/Rivet/latest/"
+FASTJET_ROOT="$ALIBUILD_WORK_DIR/$(aliBuild architecture)/fastjet/latest/"
+HEPMC2_ROOT="/$ALIBUILD_WORK_DIR/$(aliBuild architecture)/HepMC/latest/"
+HEPMC3_ROOT="/$ALIBUILD_WORK_DIR/$(aliBuild architecture)/HepMC3/latest/"
+LHAPDF_ROOT="/$ALIBUILD_WORK_DIR/$(aliBuild architecture)/lhapdf/latest/"
 #
 # Download pythia code
 mkdir -p tars
@@ -53,7 +99,7 @@ if [ $PYTHIASHORTV_ = "82" ]
     ./configure ${HEPMC2_ROOT:+--with-hepmc2="$HEPMC2_ROOT"} \
                 ${LHAPDF_ROOT:+--with-lhapdf6="$LHAPDF_ROOT"} \
                 ${FASTJET_ROOT:+--with-fastjet3="$FASTJET_ROOT"} \
-                --cxx-common="-O2 -std=c++2b -pedantic -W -Wall -Wshadow -fPIC -pthread"
+                --cxx-common="-O2 -std=c++17 -pedantic -W -Wall -Wshadow -fPIC -pthread"
 fi
 if [ $PYTHIASHORTV_ = "83" ]
     then

@@ -1,0 +1,18 @@
+! Custom colour reconnection from publication:
+! https://arxiv.org/pdf/1505.01681.pdf - Mode 3
+StringPT:sigma = 0.335
+StringZ:aLund = 0.36
+StringZ:aLund = 0.56
+StringFlav:probQQtoQ = 0.078
+StringFlav:probStoUD = 0.2
+StringFlav:probQQ1toQQ0join = 0.0275, 0.0275, 0.0275, 0.0275
+MultiPartonInteractions:pT0Ref = 2.05
+BeamRemnants:remnantMode = 1
+BeamRemnants:saturation = 5
+ColourReconnection:mode = 1
+ColourReconnection:allowDoubleJunRem = off
+ColourReconnection:m0 = 0.3
+ColourReconnection:allowJunctions = on
+ColourReconnection:junctionCorrection = 1.15
+ColourReconnection:timeDilationMode = 3
+ColourReconnection:timeDilationPar = 0.073

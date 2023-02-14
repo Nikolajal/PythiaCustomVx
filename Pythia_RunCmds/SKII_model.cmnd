@@ -1,0 +1,6 @@
+! The SK II e^+ e^- CR model
+! https://pythia.org/latest-manual/ColourReconnection.html#anchor2
+ColourReconnection:reconnect = on
+ColourReconnection:mode = 4
+ColourReconnection:forceResonance = on
+PartonLevel:earlyResDec = off

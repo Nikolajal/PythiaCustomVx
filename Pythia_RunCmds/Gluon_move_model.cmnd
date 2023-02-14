@@ -1,5 +1,4 @@
-! The new more QCD based scheme
+! The new gluon-move model
 ! https://pythia.org/latest-manual/ColourReconnection.html#anchor2
 ColourReconnection:reconnect = on
-ColourReconnection:mode = 1
-BeamRemnants:remnantMode = 1
+ColourReconnection:mode = 2

@@ -1,0 +1,12 @@
+! Custom mode: QCD based CR w/o ropes
+MultiPartonInteractions:pT0Ref = 2.15
+BeamRemnants:remnantMode = 1
+BeamRemnants:saturation = 5
+ColourReconnection:mode = 1
+ColourReconnection:allowDoubleJunRem = off
+ColourReconnection:allowJunctions = on
+ColourReconnection:m0 = 0.3
+ColourReconnection:junctionCorrection = 1.2
+ColourReconnection:timeDilationMode = 2
+ColourReconnection:timeDilationPar = 0.18
+Ropewalk:RopeHadronization = off

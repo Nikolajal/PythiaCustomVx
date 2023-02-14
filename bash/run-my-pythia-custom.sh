@@ -9,10 +9,12 @@ BEAMPARTICLEA=2212
 BEAMPARTICLEB=2212
 NEVENTS=10000
 SEED=12345
-OPTION=0
+RUNOPTION=0
 FILENAME="out"
 DRYRUN=FALSE
-while getopts ':hV-:' OPTION; do
+RUNCARD=""
+RUNCOMMAND=""
+while getopts ':V-:' OPTION; do
     case "$OPTION" in
         ## Complex options
         -)
@@ -21,7 +23,7 @@ while getopts ':hV-:' OPTION; do
                 verbose)
                     VERBOSE=TRUE
                     ;;
-                ## Set verbose
+                ## Set dryrun option
                 dryrun)
                     DRYRUN=TRUE
                     ;;
@@ -93,15 +95,17 @@ while getopts ':hV-:' OPTION; do
                 ## Option
                 option)
                     CURRENTVAL="${!OPTIND}"; OPTIND=$(( $OPTIND + 1 ))
-                    OPTION="$CURRENTVAL"
+                    RUNOPTION="$CURRENTVAL"
                     ;;
                 option=*)
                     CURRENTVAL=${OPTARG#*=}
-                    OPTION="$CURRENTVAL"
+                    RUNOPTION="$CURRENTVAL"
                     ;;
                 *)
                     if [ "$OPTERR" = 1 ] && [ "${optspec:0:1}" != ":" ]; then
                         echo "Unknown option --${OPTARG}" >&2
+                        echo "use -h to see list of available commands. abort"
+                        exit 1
                     fi
                     ;;
             esac;;
@@ -124,6 +128,8 @@ while getopts ':hV-:' OPTION; do
             echo    "--outfile  Set outputfile                              "
             echo    "--option   Set generation option                       "
             echo    "--dryrun   Only compile code                           "
+            echo    "--RUNCARD      Additional runcard    (TBI)             "
+            echo    "--RUNCOMMAND   Additional runcommand (TBI)             "
             exit 1
             ;;
   esac
@@ -140,7 +146,9 @@ if [ ! -d "$(pwd)/Pythia_vX/pythia$PYTHIAVERSION/bin/" ]
     then
     if $DRYRUN
     then
-        echo "[WARNING] Pythia not available, will try to fetch it"
+        echo "[WARNING] Aborting, pythia not available: without proper Pythia version compilation will fail..."
+        echo "[INFO] To install needed version run ./bash/build-my-pythia.sh -v $PYTHIAVERSION"
+        exit 1
     else
         echo "[WARNING] Pythia not available, trying to fetch it"
         ./bash/build-my-pythia.sh -v $PYTHIAVERSION
@@ -161,5 +169,5 @@ if $DRYRUN
 then
     echo    "[INFO] Done! Dryrun completed   "
 else
-    ./exe/main_custom $FILENAME $NEVENTS $SEED $OPTION $COLLISIONENERGY $BEAMPARTICLEA $BEAMPARTICLEB
+    ./exe/main_custom $FILENAME $NEVENTS $SEED $RUNOPTION $COLLISIONENERGY $BEAMPARTICLEA $BEAMPARTICLEB
 fi
